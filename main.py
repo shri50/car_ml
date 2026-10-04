@@ -34,7 +34,8 @@ def predict_price(Brand,
     with open(r"model/xgb_model.pkl","rb") as model_file:
         model = pickle.load(model_file)
 
-    predict = model.predict(input_data)[0]
+    predict = round(model.predict(input_data)[0],2)
+    print(predict)
     return  predict   
 
 @app.route('/predict', methods=['POST'])

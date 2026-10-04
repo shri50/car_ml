@@ -4,8 +4,127 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Car Price Predictor</title>
+    <style>
+        body {
+            max-width: 640px;
+            margin: 40px auto;
+            padding: 0 20px;
+            color: #1f2937;
+            font-family: Arial, sans-serif;
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        label {
+            display: grid;
+            gap: 6px;
+            font-weight: 600;
+        }
+
+        input, button {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #9ca3af;
+            border-radius: 4px;
+            font: inherit;
+        }
+
+        button {
+            grid-column: 1 / -1;
+            color: white;
+            background: #2563eb;
+            border: 0;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.65;
+            cursor: wait;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body>
     <h1>Car Price Predictor</h1>
+    <p>Enter the car details to get an estimated price.</p>
+
+    <form id="prediction-form">
+        <label>
+            Brand
+            <input name="Brand" type="text" placeholder="e.g. Toyota" required>
+        </label>
+        <label>
+            Variant
+            <input name="Variant" type="text" placeholder="e.g. VXi" required>
+        </label>
+        <label>
+            Model year
+            <input name="Model_Year" type="number" min="1900" max="2026" step="1" required>
+        </label>
+        <label>
+            City
+            <input name="City" type="text" placeholder="e.g. Hyderabad" required>
+        </label>
+        <label>
+            Kilometers driven
+            <input name="Kilometer" type="number" min="0" step="1" required>
+        </label>
+        <label>
+            Fuel type
+            <input name="Fuel_Type" type="text" placeholder="e.g. Petrol" required>
+        </label>
+        <label>
+            Drive mode
+            <input name="Drive_Mode" type="text" placeholder="e.g. Manual" required>
+        </label>
+        <button type="submit">Predict price</button>
+    </form>
+
+    <p id="result" role="status" aria-live="polite"></p>
+
+    <script>
+        const form = document.getElementById('prediction-form');
+        const result = document.getElementById('result');
+        const submitButton = form.querySelector('button[type="submit"]');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            result.textContent = 'Calculating...';
+            submitButton.disabled = true;
+
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            data.Model_Year = Number(data.Model_Year);
+            data.Kilometer = Number(data.Kilometer);
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const message = await response.text();
+
+                if (!response.ok) {
+                    throw new Error(message || 'Prediction request failed.');
+                }
+
+                result.textContent = message;
+            } catch (error) {
+                result.textContent = `Error: ${error.message}`;
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+    </script>
 </body>
 </html>
